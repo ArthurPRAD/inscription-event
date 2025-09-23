@@ -1,21 +1,267 @@
-import LiquidEther from './LiquidEther';
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Inscription Five ⚽</title>
+  <style>
+    :root{
+      --bg:#0f172a; --card:#111827; --muted:#94a3b8; --text:#e5e7eb; --accent:#22c55e; --danger:#ef4444; --warn:#f59e0b;
+      --border:#1f2937;
+    }
+    *{box-sizing:border-box}
+    body{margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Inter,Arial; background:linear-gradient(180deg,#0b1220,#0f172a 35%,#0b1220); color:var(--text); min-height:100vh; display:grid; place-items:center; padding:24px}
+    .wrap{width:100%; max-width:840px}
+    .card{background:var(--card); border:1px solid var(--border); border-radius:20px; padding:24px; box-shadow:0 10px 30px rgba(0,0,0,.25)}
+    h1{margin:0 0 8px; font-size:28px}
+    .subtitle{color:var(--muted); margin:0 0 16px; font-size:14px}
+    .grid{display:grid; gap:16px}
+    .two{grid-template-columns:1fr 1fr}
+    @media (max-width:720px){ .two{grid-template-columns:1fr} }
+    label{display:block; font-weight:600; margin-bottom:6px}
+    input, select{width:100%; background:#0b1220; color:var(--text); border:1px solid var(--border); border-radius:12px; padding:12px 14px; outline:none}
+    input:focus, select:focus{border-color:#334155}
+    button{appearance:none; border:0; padding:12px 16px; border-radius:12px; font-weight:700; cursor:pointer}
+    .btn{background:var(--accent); color:#071b0f}
+    .btn[disabled]{opacity:.6; cursor:not-allowed}
+    .btn-outline{background:transparent; color:var(--text); border:1px solid var(--border)}
+    .row{display:flex; gap:12px; flex-wrap:wrap; align-items:center}
+    .counter{padding:10px 12px; border:1px dashed #22304a; border-radius:12px; color:var(--muted); font-size:14px}
+    .pill{display:inline-flex; align-items:center; gap:8px; padding:8px 12px; border-radius:999px; border:1px solid var(--border); background:#0b1220; color:var(--muted); font-size:13px}
+    .ok{color:var(--accent)}
+    .warn{color:var(--warn)}
+    .full{color:var(--danger)}
+    .msg{margin-top:12px; font-size:14px}
+    .msg.ok{color:var(--accent)}
+    .msg.err{color:var(--danger)}
+    table{width:100%; border-collapse:collapse; margin-top:8px}
+    th, td{padding:10px 8px; border-bottom:1px solid var(--border); text-align:left; font-size:14px}
+    th{color:#cbd5e1; font-weight:700}
+    .footer{margin-top:18px; color:var(--muted); font-size:12px}
+    .admin{margin-left:auto}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>Inscription Five ⚽</h1>
+      <p class="subtitle">Limite à <strong id="cap">10</strong> joueurs. D’abord inscrit, d’abord servi.</p>
 
-<div style={{ width: '100%', height: 600, position: 'relative' }}>
-  <LiquidEther
-    colors={[ '#5227FF', '#FF9FFC', '#B19EEF' ]}
-    mouseForce={20}
-    cursorSize={100}
-    isViscous={false}
-    viscous={30}
-    iterationsViscous={32}
-    iterationsPoisson={32}
-    resolution={0.5}
-    isBounce={false}
-    autoDemo={true}
-    autoSpeed={0.5}
-    autoIntensity={2.2}
-    takeoverDuration={0.25}
-    autoResumeDelay={3000}
-    autoRampDuration={0.6}
-  />
-</div>
+      <div class="row" style="margin-bottom:16px">
+        <div class="counter">
+          <span id="remaining">10</span> place(s) restante(s) ·
+          <span id="booked">0</span> inscrit(s)
+        </div>
+        <span class="pill"><span id="status-dot">●</span><span id="status-text">Ouvert</span></span>
+        <div class="admin row" style="gap:8px">
+          <button class="btn-outline" id="exportCsvBtn" title="Exporter la liste des inscrits">Exporter CSV</button>
+          <button class="btn-outline" id="resetBtn" title="Réinitialiser (local)">Réinitialiser</button>
+        </div>
+      </div>
+
+      <form id="signupForm" class="grid two" autocomplete="on" novalidate>
+        <div>
+          <label for="name">Nom & prénom</label>
+          <input id="name" name="name" type="text" placeholder="Alex Dupont" required minlength="2" />
+        </div>
+        <div>
+          <label for="email">E-mail</label>
+          <input id="email" name="email" type="email" placeholder="alex@example.com" required />
+        </div>
+        <div>
+          <label for="phone">Téléphone (optionnel)</label>
+          <input id="phone" name="phone" type="tel" inputmode="tel" placeholder="06 12 34 56 78" />
+        </div>
+        <div>
+          <label for="position">Poste préféré</label>
+          <select id="position" name="position">
+            <option value="polyvalent">Polyvalent</option>
+            <option value="gardien">Gardien</option>
+            <option value="defense">Défense</option>
+            <option value="milieu">Milieu</option>
+            <option value="attaque">Attaque</option>
+          </select>
+        </div>
+        <div class="row" style="grid-column:1/-1; justify-content:flex-start; gap:10px">
+          <button type="submit" class="btn" id="submitBtn">S’inscrire</button>
+          <span class="msg" id="formMsg"></span>
+        </div>
+      </form>
+
+      <div style="margin-top:24px">
+        <h2 style="margin:0 0 8px; font-size:18px">Liste des inscrits</h2>
+        <div class="subtitle" style="margin:0 0 8px">Mise à jour en temps réel (stockée localement pour la démo).</div>
+        <div id="listWrap">
+          <table id="listTable" aria-live="polite">
+            <thead>
+              <tr><th>#</th><th>Nom</th><th>E-mail</th><th>Poste</th></tr>
+            </thead>
+            <tbody id="listBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="footer">
+        Astuce : pour une vraie mise en prod, envoie les données vers ton serveur/automation et applique la limite côté serveur.
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // --- Paramètres ---
+    const CAPACITY = 10;
+    const STORAGE_KEY = "five_signup_v1"; // stockage local pour la démo
+
+    // --- Eléments UI ---
+    const capEl = document.getElementById("cap");
+    const remainingEl = document.getElementById("remaining");
+    const bookedEl = document.getElementById("booked");
+    const statusDotEl = document.getElementById("status-dot");
+    const statusTextEl = document.getElementById("status-text");
+    const form = document.getElementById("signupForm");
+    const formMsg = document.getElementById("formMsg");
+    const submitBtn = document.getElementById("submitBtn");
+    const listBody = document.getElementById("listBody");
+    const exportCsvBtn = document.getElementById("exportCsvBtn");
+    const resetBtn = document.getElementById("resetBtn");
+
+    capEl.textContent = CAPACITY;
+
+    // --- Helpers stockage ---
+    function getSignups(){
+      try{
+        const raw = localStorage.getItem(STORAGE_KEY);
+        return raw ? JSON.parse(raw) : [];
+      }catch(e){ return []; }
+    }
+    function setSignups(arr){
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(arr));
+    }
+
+    // --- UI update ---
+    function render(){
+      const list = getSignups();
+      // tableau
+      listBody.innerHTML = "";
+      list.slice(0, CAPACITY).forEach((s, idx) => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${idx+1}</td>
+          <td>${escapeHtml(s.name)}</td>
+          <td>${escapeHtml(s.email)}</td>
+          <td>${escapeHtml(labelPoste(s.position))}</td>
+        `;
+        listBody.appendChild(tr);
+      });
+
+      const booked = Math.min(list.length, CAPACITY);
+      const remaining = Math.max(CAPACITY - booked, 0);
+      bookedEl.textContent = booked;
+      remainingEl.textContent = remaining;
+
+      const full = booked >= CAPACITY;
+      submitBtn.disabled = full;
+      statusDotEl.textContent = "●";
+      statusTextEl.textContent = full ? "Complet" : (remaining <= 2 ? "Quasi complet" : "Ouvert");
+      statusTextEl.className = full ? "full" : (remaining <= 2 ? "warn" : "ok");
+    }
+
+    function labelPoste(v){
+      const map = { polyvalent:"Polyvalent", gardien:"Gardien", defense:"Défense", milieu:"Milieu", attaque:"Attaque" };
+      return map[v] || "Polyvalent";
+    }
+
+    function escapeHtml(str){
+      return String(str).replace(/[&<>"']/g, m => ({
+        "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+      }[m]));
+    }
+
+    // --- Validation simple ---
+    function isEmail(email){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email); }
+
+    // --- Soumission ---
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      formMsg.textContent = "";
+      formMsg.className = "msg";
+
+      const formData = new FormData(form);
+      const name = (formData.get("name")||"").toString().trim();
+      const email = (formData.get("email")||"").toString().trim().toLowerCase();
+      const phone = (formData.get("phone")||"").toString().trim();
+      const position = (formData.get("position")||"polyvalent").toString();
+
+      if (name.length < 2){ return showErr("Merci d’indiquer votre nom."); }
+      if (!isEmail(email)){ return showErr("E-mail invalide."); }
+
+      let list = getSignups();
+
+      // doublon par email
+      if (list.some(s => s.email === email)){
+        return showErr("Cet e-mail est déjà inscrit.");
+      }
+
+      // limite de capacité
+      if (list.length >= CAPACITY){
+        return showErr("Désolé, c’est complet.");
+      }
+
+      // ajouter localement
+      const signup = { name, email, phone, position, ts: Date.now() };
+      list.push(signup);
+      setSignups(list);
+      form.reset();
+      showOk("Inscription confirmée !");
+      render();
+
+      // === Intégration serveur (exemple) ===
+      // Décommente et remplace URL par ton endpoint
+      // try{
+      //   const res = await fetch("https://ton-endpoint.exemple/inscriptions", {
+      //     method:"POST",
+      //     headers:{ "Content-Type":"application/json" },
+      //     body: JSON.stringify(signup)
+      //   });
+      //   if (!res.ok) console.warn("Serveur a répondu avec une erreur");
+      // }catch(err){ console.warn("Echec envoi serveur:", err); }
+    });
+
+    function showOk(msg){
+      formMsg.textContent = msg;
+      formMsg.className = "msg ok";
+    }
+    function showErr(msg){
+      formMsg.textContent = msg;
+      formMsg.className = "msg err";
+    }
+
+    // --- Export CSV ---
+    exportCsvBtn.addEventListener("click", () => {
+      const rows = [["Nom","Email","Téléphone","Poste","Horodatage"]];
+      getSignups().forEach(s => {
+        rows.push([s.name, s.email, s.phone || "", labelPoste(s.position), new Date(s.ts).toISOString()]);
+      });
+      const csv = rows.map(r => r.map(cell => `"${String(cell).replace(/"/g,'""')}"`).join(",")).join("\n");
+      const blob = new Blob([csv], { type:"text/csv;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url; a.download = "inscrits_five.csv";
+      document.body.appendChild(a); a.click(); a.remove();
+      URL.revokeObjectURL(url);
+    });
+
+    // --- Reset (admin local) ---
+    resetBtn.addEventListener("click", () => {
+      if (confirm("Réinitialiser la liste locale des inscrits ?")) {
+        localStorage.removeItem(STORAGE_KEY);
+        render();
+        showOk("Liste réinitialisée (localStorage).");
+      }
+    });
+
+    // --- Init ---
+    render();
+  </script>
+</body>
+</html>
